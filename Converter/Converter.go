@@ -5,63 +5,89 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
-	"io/ioutil"
-	"log"
 	"os"
+	"path/filepath"
 )
 
 type Converter struct {
 	Paths []string
-	F     *os.File
-	Img   *image.Image
+	F     []*os.File
+	Imgs   []*image.Image
 }
 
 // ファイルパスを読み込み
-func GetFilePath(name string) []string {
-	files, err := ioutil.ReadDir(name)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func WalkFilePath(name string) ([]string, error) {
 	var s []string
 
-	for _, file := range files {
-		//.DS_Store を削除
-		s = append(s, file.Name())
+	err := filepath.Walk(name, func(path string, info os.FileInfo, err error) error {
+		if filepath.Ext(path) == ".jpg" {
+			s = append(s, path)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
-	return s
+	return s, nil
 }
 
 // インスタンスを作成
 func NewConverter(name string) Converter{
-	s := GetFilePath("jpeg")
-	f, err := os.Open(name)
+
+	// TEST
+	s, err := WalkFilePath(name)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		os.Exit(4)
 	}
+	//
+
+	//f, err := os.Open(name)
+	//if err != nil {
+	//	fmt.Println(err)
+	//	os.Exit(1)
+	//}
+	var fs []*os.File
+
+	for _, path := range s {
+		f, _ := os.Open(path)
+		fs = append(fs, f)
+	}
+
 	return Converter{
-		F:     f,
+		F:     fs,
 		Paths: s,
 	}
 }
 
 // 画像を読み込み
 func (c *Converter) DecodeJpeg() {
-	img, err := jpeg.Decode(c.F)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(2)
+	var imgs []*image.Image
+	for _, file := range c.F {
+		img, _ := jpeg.Decode(file)
+		imgs = append(imgs, &img)
 	}
-	c.Img = &img
+	c.Imgs = imgs
 }
 
 // 画像を出力
-func (c *Converter) EncodePng(name string) {
-	f, _ := os.Create(name)
-	if err := png.Encode(f, *c.Img); err != nil {
+func (c *Converter) EncodePng(dirname string) {
+	if err := os.Mkdir(dirname, 0777); err != nil {
 		fmt.Println(err)
-		os.Exit(3)
+		os.Exit(5)
 	}
 
+	for i, img := range c.Imgs {
+		f, _ := os.Create(dirname + "/" + getFileNameWithoutExt(c.Paths[i]) + ".png")
+		fmt.Println(dirname + "/" + getFileNameWithoutExt(c.Paths[i]) + ".png")
+		if err := png.Encode(f, *img); err != nil {
+			fmt.Printf("type is %T\n", img)
+			fmt.Println(err)
+			os.Exit(3)
+		}
+	}
+}
+func getFileNameWithoutExt(path string) string {
+	return filepath.Base(path[:len(path)-len(filepath.Ext(path))])
 }

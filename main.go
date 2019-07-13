@@ -1,13 +1,9 @@
 package main
 
-import (
-	"fmt"
-	"github.com/benibana2001/imgConverter/Converter"
-)
+import "github.com/benibana2001/imgConverter/Converter"
 
 func main() {
-	c := Converter.NewConverter("jpeg/sample01.jpg")
-	fmt.Println(c.Paths)
+	c := Converter.NewConverter("jpeg")
 	c.DecodeJpeg()
-	c.EncodePng("sample01.png")
+	c.EncodePng("output")
 }
