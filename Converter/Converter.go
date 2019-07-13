@@ -10,16 +10,18 @@ import (
 )
 
 type Converter struct {
+	Dir   string
+	Dist  string
 	Paths []string
-	F     []*os.File
-	Imgs   []*image.Image
+	Files []*os.File
+	Imgs  []*image.Image
 }
 
 // ファイルパスを読み込み
-func WalkFilePath(name string) ([]string, error) {
+func walkFilePath(dirname string) ([]string, error) {
 	var s []string
 
-	err := filepath.Walk(name, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(dirname, func(path string, info os.FileInfo, err error) error {
 		if filepath.Ext(path) == ".jpg" {
 			s = append(s, path)
 		}
@@ -33,38 +35,35 @@ func WalkFilePath(name string) ([]string, error) {
 }
 
 // インスタンスを作成
-func NewConverter(name string) Converter{
+func NewConverter() Converter {
+	c := Converter{
+		Dir:  os.Args[1],
+		Dist: os.Args[2],
+	}
 
-	// TEST
-	s, err := WalkFilePath(name)
+	// ディレクトリ内の全ファイルのパスを取得する
+	paths, err := walkFilePath(c.Dir)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(4)
 	}
-	//
+	c.Paths = paths
 
-	//f, err := os.Open(name)
-	//if err != nil {
-	//	fmt.Println(err)
-	//	os.Exit(1)
-	//}
-	var fs []*os.File
-
-	for _, path := range s {
+	// 全ファイルのio.Writerを作成する
+	var files []*os.File
+	for _, path := range paths {
 		f, _ := os.Open(path)
-		fs = append(fs, f)
+		files = append(files, f)
 	}
+	c.Files = files
 
-	return Converter{
-		F:     fs,
-		Paths: s,
-	}
+	return c
 }
 
 // 画像を読み込み
 func (c *Converter) DecodeJpeg() {
 	var imgs []*image.Image
-	for _, file := range c.F {
+	for _, file := range c.Files {
 		img, _ := jpeg.Decode(file)
 		imgs = append(imgs, &img)
 	}
@@ -72,15 +71,16 @@ func (c *Converter) DecodeJpeg() {
 }
 
 // 画像を出力
-func (c *Converter) EncodePng(dirname string) {
-	if err := os.Mkdir(dirname, 0777); err != nil {
+func (c *Converter) EncodePng() {
+	dist := c.Dist
+	if err := os.Mkdir(dist, 0777); err != nil {
 		fmt.Println(err)
 		os.Exit(5)
 	}
 
 	for i, img := range c.Imgs {
-		f, _ := os.Create(dirname + "/" + getFileNameWithoutExt(c.Paths[i]) + ".png")
-		fmt.Println(dirname + "/" + getFileNameWithoutExt(c.Paths[i]) + ".png")
+		f, _ := os.Create(dist + "/" + getFileNameWithoutExt(c.Paths[i]) + ".png")
+		fmt.Println(dist + "/" + getFileNameWithoutExt(c.Paths[i]) + ".png")
 		if err := png.Encode(f, *img); err != nil {
 			fmt.Printf("type is %T\n", img)
 			fmt.Println(err)
@@ -88,6 +88,7 @@ func (c *Converter) EncodePng(dirname string) {
 		}
 	}
 }
+
 func getFileNameWithoutExt(path string) string {
 	return filepath.Base(path[:len(path)-len(filepath.Ext(path))])
 }

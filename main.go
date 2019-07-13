@@ -1,9 +1,12 @@
 package main
 
-import "github.com/benibana2001/imgConverter/Converter"
+import (
+	"github.com/benibana2001/imgConverter/Converter"
+)
 
 func main() {
-	c := Converter.NewConverter("jpeg")
+	// 渡された引数を取得
+	c := Converter.NewConverter()
 	c.DecodeJpeg()
-	c.EncodePng("output")
+	c.EncodePng()
 }
