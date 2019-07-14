@@ -7,6 +7,6 @@ import (
 func main() {
 	// 渡された引数を取得
 	c := Converter.NewConverter()
-	c.DecodeJpeg()
-	c.EncodePng()
+	c.Decode()
+	c.Encode()
 }
