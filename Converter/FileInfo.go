@@ -70,5 +70,6 @@ func walkFilePath(dirname string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(s)
 	return s, nil
 }

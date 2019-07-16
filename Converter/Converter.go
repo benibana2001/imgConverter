@@ -28,13 +28,13 @@ func NewConverter() Converter {
 
 // 変換処理
 func (c *Converter) Convert() {
-	c.openImages()
-	c.decode()
-	c.encode()
+	c.OpenFiles()
+	c.Decode()
+	c.Encode()
 }
 
 // 全てのファイルのio.Writerを作成する
-func (c *Converter) openImages() {
+func (c *Converter) OpenFiles() {
 	var files []*os.File
 	for _, path := range c.FileInfo.Base.FilePaths {
 		f, err := os.Open(path)
@@ -51,7 +51,7 @@ func (c *Converter) openImages() {
 }
 
 // 画像を読み込み
-func (c *Converter) decode() {
+func (c *Converter) Decode() {
 	var imgs []*image.Image
 
 	for _, file := range c.Files {
@@ -71,7 +71,7 @@ func (c *Converter) decode() {
 }
 
 // 画像を出力
-func (c *Converter) encode() {
+func (c *Converter) Encode() {
 	if err := os.Mkdir(c.FileInfo.Dist.DirName, 0777); err != nil {
 		fmt.Println(err)
 		fmt.Println(c.FileInfo.Dist.DirName)
