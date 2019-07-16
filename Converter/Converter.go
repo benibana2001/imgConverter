@@ -74,6 +74,7 @@ func (c *Converter) decode() {
 func (c *Converter) encode() {
 	if err := os.Mkdir(c.FileInfo.Dist.DirName, 0777); err != nil {
 		fmt.Println(err)
+		fmt.Println(c.FileInfo.Dist.DirName)
 		os.Exit(5)
 	}
 

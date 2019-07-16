@@ -18,12 +18,6 @@ type DirType struct {
 	FilePaths []string
 }
 
-var (
-	baseDirName = os.Args[1]
-	distDirName = os.Args[2]
-	baseExtension = *flag.String("base", "jpg", "base extension")
-	distExtension = *flag.String("dist", "png", "dist extension")
-)
 
 func createFileInfo() *FileInfo {
 	a := FileInfo{
@@ -43,14 +37,23 @@ func createFileInfo() *FileInfo {
 }
 
 func (a *FileInfo) setArgs() {
+	//　フラグをセット
+	var (
+		baseExtension = flag.String("base", "jpg", "base extension")
+		distExtension = flag.String("dist", "png", "dist extension")
+	)
+
+	// フラグをパース
+	flag.Parse()
 
 	// 変換元ファイルの情報をセットする
-	a.Base.DirName = baseDirName
-	a.Base.Extension = baseExtension
+	a.Base.DirName = flag.Arg(0)
+	a.Base.Extension = *baseExtension
 
 	// 変換後ファイルの情報をセットする
-	a.Dist.DirName = distDirName
-	a.Dist.Extension = distExtension
+	a.Dist.DirName = flag.Arg(1)
+	a.Dist.Extension = *distExtension
+
 }
 
 // ディレクトリ内にある全てのファイルのパスを取得する
