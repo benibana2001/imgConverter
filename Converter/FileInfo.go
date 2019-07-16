@@ -7,18 +7,25 @@ import (
 	"path/filepath"
 )
 
+// 変換元ディレクトリと変換後ディレクトリの情報を保持する構造体
 type FileInfo struct {
+	// 変換元ディレクトリの情報
 	Base DirType
+	// 変換後ディレクトリの情報
 	Dist DirType
 }
 
+// ディレクトリ別の情報を保持する構造体
 type DirType struct {
+	// ディレクトリ名
 	DirName   string
+	// ディレクトリに格納されている画像ファイルの拡張子
 	Extension string
+	// ディレクトリに格納されている画像ファイルのパス
 	FilePaths []string
 }
 
-
+// ディレクトリ情報のインスタンスを作成
 func createFileInfo() *FileInfo {
 	a := FileInfo{
 		DirType{},
@@ -36,6 +43,7 @@ func createFileInfo() *FileInfo {
 	return &a
 }
 
+// CLIで渡された引数を構造体に格納する
 func (a *FileInfo) setArgs() {
 	//　フラグをセット
 	var (

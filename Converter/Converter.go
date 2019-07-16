@@ -9,9 +9,13 @@ import (
 	"path/filepath"
 )
 
+// 画像変換を行う構造体
 type Converter struct {
+	// 変換元ファイルと変換後ファイルの情報を含んだ構造体
 	FileInfo *FileInfo
+	// 全ての変換元ファイルをos.Openし保持
 	Files    []*os.File
+	// 全ての変換元ファイルをデコードして保持
 	Imgs     []*image.Image
 }
 
@@ -50,7 +54,7 @@ func (c *Converter) OpenFiles() {
 	c.Files = files
 }
 
-// 画像を読み込み
+// 画像をデコード
 func (c *Converter) Decode() {
 	var imgs []*image.Image
 
@@ -70,7 +74,7 @@ func (c *Converter) Decode() {
 	c.Imgs = imgs
 }
 
-// 画像を出力
+// 画像をエンコード出力
 func (c *Converter) Encode() {
 	if err := os.Mkdir(c.FileInfo.Dist.DirName, 0777); err != nil {
 		fmt.Println(err)
