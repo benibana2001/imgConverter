@@ -44,59 +44,44 @@ func NewConverter() Converter {
 func (c *Converter) Decode() {
 	var imgs []*image.Image
 
-	// jpeg を png へ変換
-	if c.FileInfo.Dist.Extension == "png" {
-		for _, file := range c.Files {
-			img, _ := jpeg.Decode(file)
-			imgs = append(imgs, &img)
+	for _, file := range c.Files {
+		var img image.Image
+
+		switch c.FileInfo.Base.Extension {
+		case "jpg" :
+			img, _ = jpeg.Decode(file)
+		case "png" :
+			img, _ = png.Decode(file)
 		}
+
+		imgs = append(imgs, &img)
 	}
 
-	// png を jpeg へ変換
-	if c.FileInfo.Dist.Extension == "jpg" {
-		for _, file := range c.Files {
-			img, _ := png.Decode(file)
-			imgs = append(imgs, &img)
-		}
-	}
 	c.Imgs = imgs
 }
 
 // 画像を出力
 func (c *Converter) Encode() {
-	dist := c.FileInfo.Dist.DirName
-	if err := os.Mkdir(dist, 0777); err != nil {
+	if err := os.Mkdir(c.FileInfo.Dist.DirName, 0777); err != nil {
 		fmt.Println(err)
 		os.Exit(5)
 	}
 
-	extPng := ".png"
-	extJpg := ".jpg"
+	for i, img := range c.Imgs {
+		newFile := c.FileInfo.Dist.DirName + "/" + getFileName(c.FileInfo.Base.FilePaths[i]) + "." + c.FileInfo.Dist.Extension
+		f, _ := os.Create(newFile)
+		fmt.Println(newFile)
 
-	// jpeg to png
-	if c.FileInfo.Dist.Extension == "png" {
-		for i, img := range c.Imgs {
-			f, _ := os.Create(dist + "/" + getFileNameWithoutExt(c.FileInfo.Base.FilePaths[i]) + extPng)
-			fmt.Println(dist + "/" + getFileNameWithoutExt(c.FileInfo.Base.FilePaths[i]) + extPng)
 
+		switch c.FileInfo.Dist.Extension {
+		case "png" :
 			err := png.Encode(f, *img)
-
 			if err != nil {
-				fmt.Printf("type is %T\n", img)
 				fmt.Println(err)
 				os.Exit(3)
 			}
-		}
-	}
 
-	// png to jpeg
-	if c.FileInfo.Dist.Extension == "jpg" {
-		fmt.Println("c.Imgs is ", c.Imgs)
-		for i, img := range c.Imgs {
-			f, _ := os.Create(dist + "/" + getFileNameWithoutExt(c.FileInfo.Base.FilePaths[i]) + extJpg)
-			fmt.Println(dist + "/" + getFileNameWithoutExt(c.FileInfo.Base.FilePaths[i]) + extJpg)
-
-
+		case "jpg" :
 			options := jpeg.Options{Quality: 100}
 			err := jpeg.Encode(f, *img, &options)
 
@@ -106,9 +91,10 @@ func (c *Converter) Encode() {
 				os.Exit(3)
 			}
 		}
+
 	}
 }
 
-func getFileNameWithoutExt(path string) string {
+func getFileName(path string) string {
 	return filepath.Base(path[:len(path)-len(filepath.Ext(path))])
 }
