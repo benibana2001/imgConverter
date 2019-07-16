@@ -10,52 +10,30 @@ import (
 )
 
 type Converter struct {
-	Dir   string
-	Dist  string
-	Ext   string
-	Paths []string
-	Files []*os.File
-	Imgs  []*image.Image
+	FileInfo *FileInfo
+	Files    []*os.File
+	Imgs     []*image.Image
 }
 
-// ファイルパスを読み込み
-func walkFilePath(dirname string) ([]string, error) {
-	var s []string
-
-	err := filepath.Walk(dirname, func(path string, info os.FileInfo, err error) error {
-		if filepath.Ext(path) == ".jpg" || filepath.Ext(path) == ".png" {
-			s = append(s, path)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-	return s, nil
-}
 
 // インスタンスを作成
 func NewConverter() Converter {
-	c := Converter{
-		Dir:  os.Args[1],
-		Dist: os.Args[2],
-		Ext:  os.Args[3],
-	}
 
-	// ディレクトリ内の全ファイルのパスを取得する
-	paths, err := walkFilePath(c.Dir)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(4)
+	c := Converter{
+		FileInfo: createFileInfo(),
 	}
-	c.Paths = paths
 
 	// 全ファイルのio.Writerを作成する
 	var files []*os.File
-	for _, path := range paths {
-		f, _ := os.Open(path)
+	for _, path := range c.FileInfo.Base.FilePaths {
+		f, err := os.Open(path)
 		files = append(files, f)
+
+		if err != nil {
+			fmt.Println(err)
+			fmt.Println("Failed to open file : ", path)
+			os.Exit(6)
+		}
 	}
 	c.Files = files
 
@@ -67,7 +45,7 @@ func (c *Converter) Decode() {
 	var imgs []*image.Image
 
 	// jpeg を png へ変換
-	if c.Ext == "png" {
+	if c.FileInfo.Dist.Extension == "png" {
 		for _, file := range c.Files {
 			img, _ := jpeg.Decode(file)
 			imgs = append(imgs, &img)
@@ -75,7 +53,7 @@ func (c *Converter) Decode() {
 	}
 
 	// png を jpeg へ変換
-	if c.Ext == "jpg" {
+	if c.FileInfo.Dist.Extension == "jpg" {
 		for _, file := range c.Files {
 			img, _ := png.Decode(file)
 			imgs = append(imgs, &img)
@@ -86,7 +64,7 @@ func (c *Converter) Decode() {
 
 // 画像を出力
 func (c *Converter) Encode() {
-	dist := c.Dist
+	dist := c.FileInfo.Dist.DirName
 	if err := os.Mkdir(dist, 0777); err != nil {
 		fmt.Println(err)
 		os.Exit(5)
@@ -96,10 +74,10 @@ func (c *Converter) Encode() {
 	extJpg := ".jpg"
 
 	// jpeg to png
-	if c.Ext == "png" {
+	if c.FileInfo.Dist.Extension == "png" {
 		for i, img := range c.Imgs {
-			f, _ := os.Create(dist + "/" + getFileNameWithoutExt(c.Paths[i]) + extPng)
-			fmt.Println(dist + "/" + getFileNameWithoutExt(c.Paths[i]) + extPng)
+			f, _ := os.Create(dist + "/" + getFileNameWithoutExt(c.FileInfo.Base.FilePaths[i]) + extPng)
+			fmt.Println(dist + "/" + getFileNameWithoutExt(c.FileInfo.Base.FilePaths[i]) + extPng)
 
 			err := png.Encode(f, *img)
 
@@ -112,11 +90,11 @@ func (c *Converter) Encode() {
 	}
 
 	// png to jpeg
-	if c.Ext == "jpg" {
+	if c.FileInfo.Dist.Extension == "jpg" {
 		fmt.Println("c.Imgs is ", c.Imgs)
 		for i, img := range c.Imgs {
-			f, _ := os.Create(dist + "/" + getFileNameWithoutExt(c.Paths[i]) + extJpg)
-			fmt.Println(dist + "/" + getFileNameWithoutExt(c.Paths[i]) + extJpg)
+			f, _ := os.Create(dist + "/" + getFileNameWithoutExt(c.FileInfo.Base.FilePaths[i]) + extJpg)
+			fmt.Println(dist + "/" + getFileNameWithoutExt(c.FileInfo.Base.FilePaths[i]) + extJpg)
 
 
 			options := jpeg.Options{Quality: 100}
