@@ -40,8 +40,14 @@ func NewConverter() Converter {
 	return c
 }
 
+// 変換処理
+func (c *Converter) Convert() {
+	c.decode()
+	c.encode()
+}
+
 // 画像を読み込み
-func (c *Converter) Decode() {
+func (c *Converter) decode() {
 	var imgs []*image.Image
 
 	for _, file := range c.Files {
@@ -61,7 +67,7 @@ func (c *Converter) Decode() {
 }
 
 // 画像を出力
-func (c *Converter) Encode() {
+func (c *Converter) encode() {
 	if err := os.Mkdir(c.FileInfo.Dist.DirName, 0777); err != nil {
 		fmt.Println(err)
 		os.Exit(5)
