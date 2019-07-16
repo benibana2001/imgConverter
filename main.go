@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/benibana2001/imgConverter/Converter"
+	"./Converter"
 )
 
 func main() {
