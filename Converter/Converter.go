@@ -23,7 +23,18 @@ func NewConverter() Converter {
 		FileInfo: createFileInfo(),
 	}
 
-	// 全ファイルのio.Writerを作成する
+	return c
+}
+
+// 変換処理
+func (c *Converter) Convert() {
+	c.openImages()
+	c.decode()
+	c.encode()
+}
+
+// 全てのファイルのio.Writerを作成する
+func (c *Converter) openImages() {
 	var files []*os.File
 	for _, path := range c.FileInfo.Base.FilePaths {
 		f, err := os.Open(path)
@@ -35,15 +46,8 @@ func NewConverter() Converter {
 			os.Exit(6)
 		}
 	}
+
 	c.Files = files
-
-	return c
-}
-
-// 変換処理
-func (c *Converter) Convert() {
-	c.decode()
-	c.encode()
 }
 
 // 画像を読み込み

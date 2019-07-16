@@ -43,9 +43,11 @@ func createFileInfo() *FileInfo {
 }
 
 func (a *FileInfo) setArgs() {
+
 	// 変換元ファイルの情報をセットする
 	a.Base.DirName = baseDirName
 	a.Base.Extension = baseExtension
+
 	// 変換後ファイルの情報をセットする
 	a.Dist.DirName = distDirName
 	a.Dist.Extension = distExtension
